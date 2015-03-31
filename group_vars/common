@@ -6,7 +6,7 @@
 #########
 
 # Distrib to use : community, dev or ice
-env = community
+env: community
 
 # STABLE
 ########
