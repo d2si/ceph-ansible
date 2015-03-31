@@ -1,0 +1,14 @@
+---
+- include: os_check.yml
+
+# TODO : Must be discussed
+#- include: os_tuning.yml
+
+- include: prerequisite_ice.yml
+  when: env == "ice"
+
+- include: install_on_redhat.yml
+  when: ansible_os_family == 'RedHat'
+
+- include: install_on_debian.yml
+  when: ansible_os_family == 'Debian'

@@ -1,0 +1,78 @@
+---
+- name: Install dependencies
+  yum: >
+    name={{ item }}
+    state=present
+  with_items:
+    - python-pycurl
+    - ntp
+    - hdparm
+    - yum-plugin-priorities.noarch
+    - epel-release
+
+# STABLE
+########
+
+# COMMUNITY VERSION
+
+- name: Install the Ceph stable repository key
+  rpm_key: >
+    key={{ ceph_stable_key }}
+    state=present
+  when: env == "community"
+
+- name: Add Ceph stable repository
+  command: >
+    rpm -U http://ceph.com/rpm-{{ ceph_stable_release }}/{{ ceph_stable_redhat_distro }}/noarch/ceph-release-1-0.{{ ceph_stable_redhat_distro|replace('rhel', 'el') }}.noarch.rpm
+    creates=/etc/yum.repos.d/ceph.repo
+  when: env == "community"
+  
+# ENTERPRISE VERSION
+
+- name: Install Inktank Ceph Enterprise repository key
+  rpm_key: >
+    key={{ ceph_stable_ice_temp_path }}/release.asc
+    state=present
+  when: env == "ice" 
+  
+- name: Add Inktank Ceph Enterprise repository
+  template: >
+    src=redhat_ice_repo.j2
+    dest=/etc/yum.repos.d/ice.repo
+    owner=root
+    group=root
+    mode=0644
+  when: env == "ice"
+
+# DEV
+# ###
+
+- name: Install the Ceph development repository key
+  rpm_key: >
+    key={{ ceph_dev_key }}
+    state=present
+  when: env == "dev"
+
+- name: Add Ceph development repository
+  command: >
+    rpm -U http://gitbuilder.ceph.com/ceph-rpm-{{ ceph_dev_redhat_distro }}-x86_64-basic/ref/{{ ceph_dev_branch }}/noarch/ceph-release-1-0.{{ ceph_stable_redhat_distro }}.noarch.rpm
+    creates=/etc/yum.repos.d/ceph.repo
+  when: env == "dev"
+
+########
+
+- name: Install Ceph
+  yum: >
+    name=ceph
+    state=latest
+
+
+# ENTERPRISE VERSION
+
+- name: Install Inktank Ceph Enterprise RBD Kernel modules
+  yum: >
+    name={{ item }}
+  with_items:
+    - "{{ ceph_stable_ice_temp_path }}/kmod-libceph-{{ ceph_stable_ice_kmod }}.rpm"
+    - "{{ ceph_stable_ice_temp_path }}/kmod-rbd-{{ ceph_stable_ice_kmod }}.rpm"
+  when: env == "ice"
