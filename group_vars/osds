@@ -1,0 +1,48 @@
+---
+# Variables here are applicable to all host groups NOT roles
+#
+
+##############
+# CEPH OPTIONS
+##############
+
+# Ansible will ignore non existent drives
+
+# Choose a scenario :
+#  1 - raw_collo = journal and osd_data on the same device
+#  2 - raw_multi = N journal devices for N OSDs
+#  3 - directory = use directory instead of disk for OSDs
+
+osd_scenario: raw_collo
+
+# Clear all device before OSD creation
+zap_devices: true
+
+# Declare devices OR select autodiscovery
+# All the scenarii inherit from the following device declaration
+#
+devices:
+  - /dev/sdb
+  - /dev/sdc
+  - /dev/sdd
+  - /dev/sde
+
+osd_auto_discovery: true
+
+
+############
+# Options for :
+# I. First scenario: journal and osd_data on the same device
+
+
+# II. Second scenario: N journal devices for N OSDs
+# TODO
+
+
+# III. Third scenario: use directory instead of disk for OSDs
+#osd_directories:
+#  - /var/lib/ceph/osd/mydir1
+#  - /var/lib/ceph/osd/mydir2
+#  - /var/lib/ceph/osd/mydir3
+#  - /var/lib/ceph/osd/mydir4
+############

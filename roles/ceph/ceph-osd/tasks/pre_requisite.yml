@@ -1,0 +1,14 @@
+---
+
+- name: Install dependencies
+  apt: >
+    pkg=parted
+    state=present
+  when: ansible_os_family == 'Debian'
+
+- name: Install dependencies
+  yum: >
+    name=parted
+    state=present
+  when: ansible_os_family == 'RedHat'
+

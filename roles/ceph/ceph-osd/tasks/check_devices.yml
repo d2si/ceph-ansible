@@ -1,0 +1,15 @@
+---
+
+- name: Check if the device is a partition or a disk
+  shell: "echo '/dev/{{ item.key }}' | egrep '/dev/(([a-z]{3,4}[0-9]$)|(cciss/c[0-9]{1}d[0-9]{1}p[0-9]$))'"
+  ignore_errors: true
+  with_dict: ansible_devices
+  register: ispartition
+  changed_when: False
+
+- name: If partition named 'ceph' exists
+  shell: "parted --script {{ item.key }} print | egrep -sq '^ 1.*ceph'"
+  ignore_errors: True
+  with_dict: ansible_devices
+  register: parted
+  changed_when: False

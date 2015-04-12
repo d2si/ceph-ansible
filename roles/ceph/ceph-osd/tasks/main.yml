@@ -1,0 +1,16 @@
+---
+
+# Systeme prerequisites
+- include: pre_requisite.yml
+
+# OSD preparation
+# TODO 1: Raw devices : OSD and journale same device
+- include: raw_collo.yml
+  when: osd_scenario == 'raw_collo'
+
+# TODO 2: Raw devices : OSD and journal different divices
+
+# TODO 3: OSD on Directory
+
+# OSD Activation
+# TODO Activate OSD

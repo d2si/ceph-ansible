@@ -1,0 +1,8 @@
+---
+
+- name: Erasing partitions and labels from OSD disk(s)
+  command: ceph-disk zap {{ item }}
+  ignore_errors: true
+  when: zap_devices and ((osd_scenario == 'raw_collo') or (osd_scenario == 'raw_multi'))
+  with_items: devices
+  changed_when: False

@@ -1,0 +1,12 @@
+---
+## SCENARIO 1: JOURNAL AND OSD_DATA ON THE SAME DEVICE
+
+- include: zap_devices.yml
+- include: check_devices.yml
+
+- name: Automatic prepare OSD disk(s) without partitions
+  command: ceph-disk prepare "/dev/{{ item.key }}"
+  when: ansible_devices is defined and osd_scenario == 'raw_collo'
+  ignore_errors: True
+  with_dict: ansible_devices
+  register: prepared_osds
