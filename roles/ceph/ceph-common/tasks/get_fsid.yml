@@ -1,0 +1,13 @@
+---
+
+- name: Generate FSID for new cluster if not found in local repository
+  shell: >
+    uuidgen > {{ansible_key_repository}}/{{cluster_name}}.fsid
+    creates={{ansible_key_repository}}/{{cluster_name}}.fsid
+  connection: local
+
+- name: Get FSID variable
+  shell: >
+    cat {{ansible_key_repository}}/{{cluster_name}}.fsid
+  connection: local
+  register: cluster_fsid

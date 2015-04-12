@@ -1,0 +1,13 @@
+######### OSD default Settings ###########
+cluster_name: clusterprod
+cluster_network: 10.0.0.0/24
+public_network: 192.168.1.0/24
+initial_monitor: mon11
+monitor_interface: eth0
+osd_journal_size: 1024
+filestore_xattr_use_omap: true
+osd_pool_default_size: 2
+osd_pool_default_min_size: 1
+osd_pool_default_pg_num: 333
+osd_pool_default_pgp_num: 333
+osd_crush_chooseleaf_type: 1

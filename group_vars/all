@@ -46,3 +46,7 @@ ceph_dev_redhat_distro: centos7
 ###############
 
 ## TODO
+
+ceph_conf_dir: /etc/ceph
+ceph_lib_dir: /var/lib/ceph
+ansible_key_repository: /GITHUB/ceph-ansible/config/keys
