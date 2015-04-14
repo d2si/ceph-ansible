@@ -1,0 +1,13 @@
+---
+
+- name: Activate OSD(s) when device is a partition
+  command: "ceph-disk activate /dev/{{ item.item.key }}"
+  with_items: prepared_osds.results
+  when: item.rc == 0
+  ignore_errors: True
+
+- name: Start and add that the OSD service to the init sequence
+  service: >
+    name=ceph
+    state=started
+    enabled=yes
