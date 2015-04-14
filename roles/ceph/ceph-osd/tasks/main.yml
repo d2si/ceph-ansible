@@ -14,3 +14,4 @@
 
 # OSD Activation
 # TODO Activate OSD
+- include: activate_osd.yml
