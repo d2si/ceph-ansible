@@ -1,55 +1,52 @@
 ---
 - name: Create monitor initial keyring
-  command: >
-    ceph-authtool {{ceph_lib_dir}}/tmp/{{cluster_name}}.keyring.mon.{{ansible_hostname}} --create-keyring --name: "mon. --cap mon 'allow *'
-    creates: "{{ceph_lib_dir}}/tmp/keyring.mon.{{ansible_hostname}}"
+  sudo: yes
+  command: ceph-authtool --create-keyring {{ceph_lib_dir}}/tmp/{{cluster_name}}.mon.keyring --gen-key -n mon. --cap mon 'allow *'
+  args:
+    creates: "{{ceph_lib_dir}}/tmp/{{cluster_name}}.mon.keyring"
 
-- name: Create admin keyring
-  command: >
-    ceph-authtool --create-keyring {{ceph_conf_dir}}/{{cluster_name}}.client.admin.keyring --gen-key -n client.admin --set-uid: "0 --cap mon 'allow *' --cap osd 'allow *' --cap mds 'allow'
+- name: Create client admin keyring
+  sudo: yes
+  command: ceph-authtool --create-keyring {{ceph_conf_dir}}/{{cluster_name}}.client.admin.keyring --gen-key -n client.admin --set-uid=0 --cap mon 'allow *' --cap osd 'allow *' --cap mds 'allow'
+    #creates: "{{ceph_conf_dir}}/{{cluster_name}}.client.admin.keyring"
 
-    creates: "{{ceph_conf_dir}}/{{cluster_name}}.client.admin.keyring"
+- name: Upload client admin keyring to ansible server
+  fetch:
+    src: "{{ceph_conf_dir}}/{{cluster_name}}.client.admin.keyring"
+    dest: "{{ansible_key_repository}}/{{cluster_name}}/client.admin.keyring" 
 
 - name: Add admin keyring to monitor keyring
-  command: >
-    ceph-authtool {{ceph_lib_dir}}/tmp/{{cluster_name}}.keyring.mon.{{ansible_hostname}} --import-keyring {{ceph_conf_dir}}/{{cluster_name}}.client.admin.keyring
+  sudo: yes
+  command: ceph-authtool {{ceph_lib_dir}}/tmp/{{cluster_name}}.mon.keyring --import-keyring {{ceph_conf_dir}}/{{cluster_name}}.client.admin.keyring
+
+- name: Upload monitor keyring to ansible server
+  sudo: yes
+  fetch:
+    src: "{{ceph_lib_dir}}/tmp/{{cluster_name}}.mon.keyring"
+    dest: "{{ansible_key_repository}}/{{cluster_name}}/mon.keyring"
 
 - name: Generate monitor map
-  command: >
-    monmaptool --create --add {{ansible_hostname}} {{hostvars[host]['ansible_' + monitor_interface]['ipv4']['address']}} --fsid {{fsid}} {{ceph_lib_dir}}/tmp/monmap
+  sudo: yes
+  command: monmaptool --create --add {{ansible_hostname}} {{ hostvars[inventory_hostname]['ansible_' + monitor_interface]['ipv4']['address'] }} --fsid {{cluster_fsid.stdout}} {{ceph_lib_dir}}/tmp/monmap
+
+- name: Upload cluster monitor map to ansible server
+  sudo: yes
+  fetch:
+    src: "{{ceph_lib_dir}}/tmp/monmap"
+    dest: "{{ansible_key_repository}}/{{cluster_name}}/monmap"
 
 - name: Create data directory for monitor
+  sudo: yes
   file:
     path: "{{ceph_lib_dir}}/mon/{{cluster_name}}-{{ansible_hostname}}"
-    state: directory
-
-- name: Populate the monitor daemon(s) with the monitor map and keyring
-  command: >
-    ceph-mon --cluster {{cluster_name}} --mkfs -i {{ansible_hostname}} --monmap {{ceph_lib_dir}}/tmp/monmap --keyring {{ceph_lib_dir}}/tmp/{{cluster_name}}.keyring.mon.{{ansible_hostname}}
-
-- name: Create conf file from template and variables
-  template: >
-    src:
-- name: Set initial monitor key permissions
-  file: >
-    path: "{{ceph_lib_dir}}/tmp/keyring.mon.{{ansible_hostname}}"
-    mode: 0600
-    owner: root
-    group: root
-
-- name: Create monitor directory
-  file: >
-    path: "{{ceph_lib_dir}}/mon/ceph-{{ansible_hostname}}"
     state: directory
     owner: root
     group: root
     mode: 0644
 
-- name: Ceph monitor mkfs
-  command: >
-    ceph-mon --mkfs -i {{ansible_hostname}} --fsid {{fsid}} --keyring {{ceph_lib_dir}}/tmp/keyring.mon.{{ansible_hostname}}
+- name: Populate the monitor daemon(s) with the monitor map and keyring
+  sudo: yes
+  command: ceph-mon --conf {{ceph_conf_dir}}/{{cluster_name}}.conf --mkfs -i {{ansible_hostname}} --monmap {{ceph_lib_dir}}/tmp/monmap --keyring {{ceph_lib_dir}}/tmp/{{cluster_name}}.mon.keyring --mon-data {{ceph_lib_dir}}/mon/{{cluster_name}}-{{ansible_hostname}}
 
-- name: Mark monitor as ready to be started
-  file: >
-    path: "{{ceph_lib_dir}}/mon/ceph-{{ansible_hostname}}/done"
-    creates: "{{ceph_lib_dir}}/mon/ceph-{{ansible_hostname}}/done"
+- name: Touch file
+  local_action: file path="{{ansible_key_repository}}/{{cluster_name}}/initcomplete" state=touch

@@ -12,3 +12,24 @@
 
 - include: install_on_debian.yml
   when: ansible_os_family == 'Debian'
+
+- include: get_fsid.yml
+
+- name: Create ceph basic directories
+  file:
+    path: "{{item}}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0744
+  with_items:
+    - "{{ceph_conf_dir}}"
+    - "{{ceph_lib_dir}}"
+    - "{{ceph_lib_dir}}/tmp"
+
+- name: Copy template conf file to host
+  template:
+    src: ceph.conf.j2
+    dest: "{{ceph_conf_dir}}/{{cluster_name}}.conf"
+    owner: root
+    group: root
