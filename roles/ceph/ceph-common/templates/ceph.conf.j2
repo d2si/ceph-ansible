@@ -1,0 +1,22 @@
+#jinja2: trim_blocks: "true", lstrip_blocks: "true"
+# {{ ansible_managed }}
+################# GLOBAL PART #################################
+[global]
+  fsid = {{cluster_fsid.stdout}}
+{% if cephx %}
+  auth cluster required = cephx
+  auth service required = cephx
+  auth client required = cephx
+{% else %}
+  auth cluster required = none
+  auth service required = none
+  auth client required = none
+  auth supported = none
+{% endif %}
+
+################# MONITOR PART #################################
+{% if "mons" in group_names %}
+[mon.{{ansible_hostname}}]
+  host = {{ansible_hostname}}
+  mon addr = {{ hostvars[inventory_hostname]['ansible_' + monitor_interface]['ipv4']['address'] }}:{{monitor_port}}
+{% endif %}
