@@ -41,12 +41,42 @@ ceph_dev_branch: master # development branch you would like to use e.g: master, 
 # For rhel, please pay attention to the versions: 'rhel6 3' or 'rhel 4', the fullname is _very_ important.
 ceph_dev_redhat_distro: centos7
 
-###############
-# CONFIGURATION
-###############
+######################################################################################
+# CONFIGURATION ( ACTS AS DEFAULT, OVERRIDABLE BY CLUSTER SPECIFIC GROUP_VARS FILE )
+######################################################################################
 
-## TODO
-
+###### Path Variables ######
 ceph_conf_dir: /etc/ceph
 ceph_lib_dir: /var/lib/ceph
 ansible_key_repository: /GITHUB/ceph-ansible/config/keys
+###### config variables ( most of them will impact ceph.conf template file ######
+##[global] part
+#Cephx
+cephx: true
+cephx_cluster_require_signatures: false
+#misc
+disable_in_memory_logs: false
+enable_debug_global: false
+debug_global_level: 0
+
+
+##[mon] part
+debug_mon_level: 0
+enable_debug_mon: false
+mon_osd_down_out_interval:
+mon_osd_min_down_reporters:
+monitor_interface: eth1
+monitor_port: 6789
+
+#[OSD] part
+#Whatever
+filestore_xattr_use_omap: true
+osd_journal_size: 1024
+max_open_files: 1024
+#Crush part
+osd_crush_chooseleaf_type: 1
+osd_pool_default_min_size: 1
+osd_pool_default_pg_num: 333
+osd_pool_default_pgp_num: 333
+osd_pool_default_size: 2
+
