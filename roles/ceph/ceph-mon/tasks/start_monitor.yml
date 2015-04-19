@@ -1,0 +1,51 @@
+---
+- name: Mark monitor as done and ready to start/autostart ( Ubuntu )
+  file:
+    path: "{{ceph_lib_dir}}/mon/{{cluster_name}}-{{ ansible_hostname }}/{{ item }}"
+    state: touch
+    owner: root
+    group: root
+    mode: 0600
+  with_items:
+    - done
+    - upstart
+  when: ansible_distribution == "Ubuntu"
+
+- name: Mark monitor as done and ready to start/autostart ( Debian / CentOS / RHEL )
+  file:
+    path: "{{ceph_lib_dir}}/mon/{{cluster_name}}-{{ ansible_hostname }}/{{ item }}"
+    state: touch
+    owner: root
+    group: root
+    mode: 0600
+  with_items:
+    - done
+    - sysvinit
+  when: ansible_distribution != "Ubuntu"
+
+- name: Start and add the monitor service to the init sequence (Ubuntu)
+  sudo: yes
+  service:
+    name: ceph-mon
+    state: started
+    enabled: yes
+    args: "id={{ansible_hostname}} conf={{ceph_conf_dir}}/ceph.conf cluster={{cluster_name}}"
+  when: ansible_distribution == "Ubuntu"
+  register: output
+
+- name: Start and add that the monitor service to the init sequence ( Debian / CentOS / RHEL )
+  sudo: yes
+  service:
+    name: ceph
+    state: started
+    enabled: yes
+    args: "mon.{{ansible_hostname}} conf={{ceph_conf_dir}}/ceph.conf cluster={{cluster_name}}"
+  when: ansible_distribution != "Ubuntu"
+
+- name: Get Ceph cluster status
+  sudo: yes
+  command: ceph --conf {{ceph_conf_dir}}/ceph.conf --cluster {{cluster_name}} status
+  register: ceph_status
+
+
+#- debug: var=ceph_status
