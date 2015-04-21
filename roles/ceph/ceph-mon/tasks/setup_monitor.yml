@@ -1,0 +1,10 @@
+---
+- name: Check for cluster completion witness file on ansible server
+  local_action: stat path="{{ansible_key_repository}}/{{cluster_name}}/initcomplete"
+  register: cluster_created
+
+- include: initialize_cluster.yml
+  when: not cluster_created.stat.exists
+
+- include: add_monitor_to_cluster.yml
+  when: cluster_created.stat.exists

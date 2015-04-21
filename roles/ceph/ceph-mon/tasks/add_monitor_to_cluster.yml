@@ -1,0 +1,47 @@
+---
+- name: Retrieve cluster monitor keyring from ansible server
+  copy:
+    src: "{{ansible_key_repository}}/{{cluster_name}}/{{cluster_name}}.mon.keyring"
+    dest: "{{ceph_conf_dir}}/{{cluster_name}}.mon.keyring"
+    mode: 0600
+    owner: root
+    group: root 
+    force: no
+
+- name: Retrieve cluster client admin keyring from ansible server
+  copy:
+    src: "{{ansible_key_repository}}/{{cluster_name}}/{{cluster_name}}.client.admin.keyring"
+    dest: "{{ceph_conf_dir}}/{{cluster_name}}.client.admin.keyring"
+    mode: 0600
+    owner: root
+    group: root 
+    force: no
+
+- name: Dump monitor map ( from ansible server )
+  command: ceph --conf {{ansible_key_repository}}/{{cluster_name}}/ceph.conf --cluster {{cluster_name}} --keyring {{ansible_key_repository}}/{{cluster_name}}/{{cluster_name}}.mon.keyring mon getmap -o {{ansible_key_repository}}/{{cluster_name}}/monmap
+  connection: local
+
+- name: Retrieve cluster monitor map from ansible server
+  copy:
+    src: "{{ansible_key_repository}}/{{cluster_name}}/monmap"
+    dest: "{{ceph_lib_dir}}/tmp/monmap"
+    mode: 0600
+    owner: root
+    group: root 
+
+- name: Create basic directory for monitor
+  file:
+    path: "{{ceph_lib_dir}}/mon"
+    state: directory
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Populate the monitor daemon(s) with the monitor map and keyring
+  command: ceph-mon --conf {{ceph_conf_dir}}/ceph.conf --mkfs -i {{ansible_hostname}} --monmap {{ceph_lib_dir}}/tmp/monmap --keyring {{ceph_conf_dir}}/{{cluster_name}}.mon.keyring --mon-data {{ceph_lib_dir}}/mon/{{cluster_name}}-{{ansible_hostname}}
+
+- debug: msg="ceph --conf {{ansible_key_repository}}/{{cluster_name}}/ceph.conf --cluster {{cluster_name}} --keyring {{ansible_key_repository}}/{{cluster_name}}/{{cluster_name}}.mon.keyring mon add {{ansible_hostname}} {{ hostvars[inventory_hostname]['ansible_' + monitor_interface]['ipv4']['address'] }}:{{monitor_port}}"
+
+- name: Declare the new monitor in the cluster ( from ansible server )
+  command: ceph --conf {{ansible_key_repository}}/{{cluster_name}}/ceph.conf --cluster {{cluster_name}} --keyring {{ansible_key_repository}}/{{cluster_name}}/{{cluster_name}}.mon.keyring mon add {{ansible_hostname}} {{ hostvars[inventory_hostname]['ansible_' + monitor_interface]['ipv4']['address'] }}:{{monitor_port}}
+  connection: local
