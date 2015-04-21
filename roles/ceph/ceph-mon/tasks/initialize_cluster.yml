@@ -14,7 +14,8 @@
 - name: Upload client admin keyring to ansible server
   fetch:
     src: "{{ceph_conf_dir}}/{{cluster_name}}.client.admin.keyring"
-    dest: "{{ansible_key_repository}}/{{cluster_name}}/client.admin.keyring" 
+    dest: "{{ansible_key_repository}}/{{cluster_name}}/"
+    flat: yes
 
 - name: Add admin keyring to monitor keyring
   sudo: yes
@@ -24,7 +25,8 @@
   sudo: yes
   fetch:
     src: "{{ceph_conf_dir}}/{{cluster_name}}.mon.keyring"
-    dest: "{{ansible_key_repository}}/{{cluster_name}}/mon.keyring"
+    dest: "{{ansible_key_repository}}/{{cluster_name}}/"
+    flat: yes
 
 - name: Generate monitor map
   sudo: yes
@@ -36,7 +38,8 @@
   sudo: yes
   fetch:
     src: "{{ceph_lib_dir}}/tmp/monmap"
-    dest: "{{ansible_key_repository}}/{{cluster_name}}/monmap"
+    dest: "{{ansible_key_repository}}/{{cluster_name}}/"
+    flat: yes
 
 - name: Create mon base directory
   file:
@@ -51,3 +54,12 @@
   command: ceph-mon --cluster {{cluster_name}} --mkfs -i {{ansible_hostname}} --monmap {{ceph_lib_dir}}/tmp/monmap --keyring {{ceph_conf_dir}}/{{cluster_name}}.mon.keyring --mon-data {{ceph_lib_dir}}/mon/{{cluster_name}}-{{ansible_hostname}}
   args:
     creates: "{{ceph_lib_dir}}/mon/{{cluster_name}}-{{ansible_hostname}}"
+
+- name: Upload initial version of ceph.conf to ansible server
+  fetch:
+    src: "{{ceph_conf_dir}}/ceph.conf"
+    dest: "{{ansible_key_repository}}/{{cluster_name}}/ceph.conf"
+    flat: yes
+
+- name: Touch cluster initcomplete witness file
+  local_action: file path={{ansible_key_repository}}/{{cluster_name}}/initcomplete state=touch
