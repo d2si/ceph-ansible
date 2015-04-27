@@ -24,12 +24,14 @@
   when: ansible_distribution != "Ubuntu"
 
 - name: Start and add the monitor service to the init sequence (Ubuntu)
+  command: ceph-mon --id {{ansible_hostname}} --conf {{ceph_conf_dir}}/ceph.conf --cluster {{cluster_name}}
   sudo: yes
-  service:
-    name: ceph-mon
-    state: started
-    enabled: yes
-    args: "id={{ansible_hostname}} conf={{ceph_conf_dir}}/ceph.conf cluster={{cluster_name}}"
+## We are using the script instead of the service start to avoid a bug when adding nodes to cluster
+#  service:
+#    name: ceph-mon
+#    state: started
+#    enabled: yes
+#    args: "id={{ansible_hostname}} conf={{ceph_conf_dir}}/ceph.conf cluster={{cluster_name}}"
   when: ansible_distribution == "Ubuntu"
   register: output
 
@@ -46,6 +48,3 @@
   sudo: yes
   command: ceph --conf {{ceph_conf_dir}}/ceph.conf --cluster {{cluster_name}} status
   register: ceph_status
-
-
-#- debug: var=ceph_status
