@@ -16,6 +16,7 @@
 - include: get_fsid.yml
 
 - name: Create ceph basic directories
+  sudo: yes
   file:
     path: "{{item}}"
     state: directory
@@ -30,6 +31,6 @@
 - name: Copy template conf file to host
   template:
     src: ceph.conf.j2
-    dest: "{{ceph_conf_dir}}/{{cluster_name}}.conf"
+    dest: "{{ceph_conf_dir}}/ceph.conf"
     owner: root
     group: root
