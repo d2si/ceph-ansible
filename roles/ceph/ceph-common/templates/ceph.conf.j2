@@ -15,8 +15,10 @@
 {% endif %}
 
 ################# MONITOR PART #################################
-{% if "mons" in group_names %}
-[mon.{{ansible_hostname}}]
-  host = {{ansible_hostname}}
-  mon addr = {{ hostvars[inventory_hostname]['ansible_' + monitor_interface]['ipv4']['address'] }}:{{monitor_port}}
+{% for host in groups['mons'] %}
+{% if cluster_name in group_names %}
+[mon.{{ hostvars[host]['ansible_hostname'] }}]
+    host = {{ hostvars[host]['ansible_hostname'] }}
+    mon addr = {{ hostvars[host]['ansible_' + monitor_interface]['ipv4']['address'] }}
 {% endif %}
+{% endfor %}
