@@ -1,12 +1,6 @@
 ---
-- name: Check for cluster completion witness file on ansible server
-  local_action: stat path="{{ansible_key_repository}}/{{cluster_name}}/initcomplete"
-  register: cluster_created
-
-- include: initialize_cluster.yml
-  when: cluster_created.stat.exists == false
-
-- include: add_monitor_to_cluster.yml
-  when: cluster_created.stat.exists == true
+#Serialisation for monitors is meant to separate initilization of cluster from adding monitor nodes
+- include: setup_monitor.yml
+  serial: 1
 
 - include: start_monitor.yml
